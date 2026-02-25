@@ -46,3 +46,7 @@ MANIFEST
 
 # Logs
 *.log
+
+# generated outputs
+outputs/*.html
+outputs/*.csv
