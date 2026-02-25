@@ -87,19 +87,17 @@ sitename,county,aqi,pollutant,status,latitude,longitude,距台北車站(公里),
 ## 📁 項目結構
 
 ```
-python-project/
-├── main.py                  # 主程式（API取得+地圖+報告）
-├── github_setup.py          # GitHub設置腳本（舊版本）
-├── setup_github.py          # GitHub初始化腳本（新版本）
-├── .env                     # 環境變數（API Key）
-├── .gitignore              # Git忽略規則
-├── requirements.txt         # Python依賴列表
-├── README.md               # 本文件
-├── data/                   # 數據目錄
-└── outputs/
-    ├── aqi_map.html        # 互動式地圖
-    └── aqi_report.csv      # 數據報告
+aqi-analysis/
+├── main.py                  # 主程式（API 取得 + 距離計算 + 輸出）
+├── .gitignore               # Git 忽略規則（.env、outputs 產出等）
+├── requirements.txt         # Python 依賴列表
+├── README.md                # 本文件
+├── data/                    # 預留給輸入資料（本作業以 API 即時取得為主）
+│   └── .gitkeep
+└── outputs/                 # 程式執行後自動產生輸出（不納入版控）
+    └── .gitkeep
 ```
+執行 main.py 後會在 outputs/ 產生 aqi_map.html 與 aqi_report.csv（此為產出檔，故不納入 Git 版控）。
 
 ## 🛠 技術棧
 
