@@ -48,8 +48,19 @@ def create_dual_layer_map():
     
     # 讀取 AQI 數據
     try:
-        aqi_df = pd.read_csv('outputs/aqi_report.csv')
+        aqi_df = pd.read_csv('data/aqi_report.csv')
         print(f"✓ 成功讀取 AQI 數據: {len(aqi_df)} 筆測站")
+        
+        # 情境注入：將大寮和林園測站的AQI值強行拉高到150
+        print("🚨 情境注入：將大寮和林園測站的AQI值拉高到150...")
+        aqi_df.loc[aqi_df['sitename'] == '大寮', 'aqi'] = 150
+        aqi_df.loc[aqi_df['sitename'] == '林園', 'aqi'] = 150
+        
+        # 確認修改
+        modified_stations = aqi_df[aqi_df['sitename'].isin(['大寮', '林園'])]
+        for _, station in modified_stations.iterrows():
+            print(f"   - {station['sitename']}: AQI {station['aqi']} ({station['county']})")
+            
     except FileNotFoundError:
         print("✗ 找不到 AQI 數據檔案")
         return
