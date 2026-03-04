@@ -41,7 +41,9 @@ MANIFEST
 
 # Data and outputs
 /data/*
+!/data/shelters_cleaned.csv
 /outputs/*
+!/outputs/shelter_aqi_analysis.csv
 !.gitkeep
 
 # Scripts
@@ -49,8 +51,3 @@ MANIFEST
 
 # Logs
 *.log
-
-# generated outputs
-outputs/*.html
-outputs/*.csv
-dual_layer_map.html
