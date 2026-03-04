@@ -1,43 +1,41 @@
-# AQI 分析系統
+# 🌍 雙圖層地圖系統 - AQI測站與避難所空間分析
 
-台灣環境部空氣品質指數（AQI）數據取得與視覺化分析系統。
+台灣地區空氣品質指數（AQI）測站與避難所的綜合空間分析系統，提供互動式地圖視覺化和風險評估功能。
 
-## ✨ 功能特性
+## 🎯 專案概述
 
-### 1. 即時數據取得
-- 串接環境部 API (aqx_p_432) 獲取全台 AQI 數據
-- 自動處理 API 認證和錯誤處理
+本專案建立了一個完整的空氣品質與避難所空間分析系統，整合了：
+- 🗺️ **雙圖層互動地圖**：AQI測站與避難所位置標示
+- 📊 **空氣品質分析**：基於距離加權的AQI評估
+- 🔍 **位置合理性審計**：避難所位置品質控制
+- 🚨 **風險評估系統**：三級風險分類（低/中/高風險）
 
-### 2. 地圖視覺化
-- 使用 Folium 在地圖上標示所有測站位置
-- 互動式地圖：點擊測站查看詳細信息
-- 懸停提示：站名 + AQI 即時預覽
+## ✨ 核心功能
 
-### 3. 分色顯示系統
-- 🟢 AQI 0-50：綠色（良好）
-- 🟡 AQI 51-100：黃色（普通）
-- 🔴 AQI 101+：紅色（不健康）
+###  空氣品質分析
+- **距離計算**：使用Haversine公式精確計算球面距離
+- **加權平均**：距離加權的AQI評估（1/(1+distance)權重）
+- **風險分類**：三級風險評估系統
+- **情境模擬**：高風險測站情境注入分析
 
-### 4. 空間計算
-- 計算每個測站到台北車站 (25.0478°N, 121.5170°E) 的地理距離
-- 使用 Haversine 公式確保計算精度
+### 🔍 資料品質控制
+- **空間審計**：多層次位置合理性檢查
+- **異常檢測**：識別和移除不合理位置
+- **人工驗證**：21個特定地點手動檢查
+- **最終品質**：98.8%位置準確性（5,904/5,973）
 
-### 5. 數據分析與報告
-- 生成 CSV 報告，包含：
-  - 測站名稱、所在縣市
-  - 即時 AQI 值
-  - 污染物狀態
-  - 經緯度
-  - **距台北車站距離（公里）**
-  - 發布時間
-- 自動按距離排序
+### 🗺️ 地圖視覺化（homework2分支）
+- **雙圖層互動地圖**：AQI測站與避難所位置標示
+- **AQI測站圖層**：85個空氣品質測站實時數據
+- **避難所圖層**：5,904個清理後的避難所位置
+- **互動功能**：點擊彈窗、風險評估、圖層切換
 
 ## 🚀 快速開始
 
 ### 環境設置
 
 ```bash
-# 創建 conda 環境（已完成）
+# 創建 conda 環境
 conda create -n RSGI python=3.12
 
 # 啟動環境
@@ -47,170 +45,187 @@ conda activate RSGI
 pip install -r requirements.txt
 ```
 
-### 配置 API
+### 專案結構
 
-在 `.env` 檔案中設置環境部 API Key：
 ```
-MOENV_API_KEY=09aca59d-4ff8-4dfd-9130-a4c2f4135469
+python-project/
+├── script/                          # 主要程式腳本
+│   └── integrated_aqi_analysis.py  # 整合版主程式（唯一腳本）
+├── data/                           # 資料檔案
+│   ├── .gitkeep                   # Git保留目錄
+│   └── shelters_cleaned.csv       # 清理後避難所數據
+├── outputs/                        # 生成輸出
+│   ├── .gitkeep                   # Git保留目錄
+│   ├── shelter_aqi_analysis.csv   # AQI分析結果
+│   └── audit_report.md            # 空間審計報告
+├── .env                           # 環境變數（API密鑰）
+├── dual_layer_map.html            # 雙圖層地圖
+├── README.md                      # 專案說明
+├── reflection.md                  # 專案反思報告
+├── requirements.txt               # Python依賴
+
 ```
 
-### 運行程式
+### 執行程式
 
+#### 整合版執行（推薦）
+一鍵執行所有功能，獲得完整分析結果：
 ```bash
-python main.py
+python script/integrated_aqi_analysis.py
+```
+**輸出**：
+- `outputs/shelter_aqi_analysis.csv`（5,904筆分析結果）
+- `outputs/dual_layer_map.html`（16.5MB互動式地圖）
+- 完整的統計報告
+
+## 📊 分析結果
+
+### 🎯 風險評估統計
+- **📊 總避難所**：5,904個
+- **✅ 有AQI資料**：5,904個（100%）
+- **🔍 風險分佈**：
+  - 🟢 **低風險**：3,916個（66.3%）
+  - 🟡 **中等風險**：1,962個（33.2%）
+  - ⚪ **無資料**：26個（0.4%）
+
+### 🏢 避難所類型分佈
+- **🏢 室內避難所**：5,321個（90.1%）
+- **🌳 室外避難所**：583個（9.9%）
+
+## 🛠 技術實現
+
+### 📏 距離計算
+使用**Haversine公式**計算地球表面兩點間的精確距離：
+```python
+def haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # 地球半徑（公里）
+    # 計算經緯度差值
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    # Haversine公式計算
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * \
+        math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    return R * c
 ```
 
-## 📊 輸出文件
-
-### aqi_map.html
-- 互動式 Folium 地圖
-- 85 個空氣品質測站標記
-- 按 AQI 等級著色
-- 點擊標記查看詳細信息
-- 右下角色彩圖例
-
-### aqi_report.csv
-數據報告示例（前5筆）：
-```
-sitename,county,aqi,pollutant,status,latitude,longitude,距台北車站(公里),publishtime
-萬華,臺北市,31,,良好,25.046503,121.507972,0.92,2026/02/25 16:00:00
-大同,臺北市,52,二氧化氮,普通,25.063315,121.513421,1.76,2026/02/25 16:00:00
-中山,臺北市,46,,良好,25.062361,121.526528,1.88,2026/02/25 16:00:00
-古亭,臺北市,37,,良好,25.020608,121.529556,3.28,2026/02/25 16:00:00
+### ⚖️ 加權平均演算法
+距離加權的AQI計算：
+```python
+weight = 1 / (1 + distance)
+weighted_aqi = sum(aqi * weight) / sum(weight)
 ```
 
-信息一覽：
-- 📍 最近測站：**萬華（0.92 公里）**
-- 📈 最遠測站：**蘇澳（460+ 公里）**
-- 📊 總測站數：**85 個**
+### 🔍 位置合理性檢查
+多層次地理邊界檢查：
+- **座標驗證**：WGS84經緯度格式確認
+- **邊界檢查**：台灣地區地理邊界定義
+- **異常檢測**：海上點位、邊界外異常
+- **人工驗證**：21個特定地點手動檢查
 
-## 📁 項目結構
+## 📈 資料品質統計
 
-```
-aqi-analysis/
-├── main.py                  # 主程式（API 取得 + 距離計算 + 輸出）
-├── .gitignore               # Git 忽略規則（.env、outputs 產出等）
-├── requirements.txt         # Python 依賴列表
-├── README.md                # 本文件
-├── data/                    # 預留給輸入資料（本作業以 API 即時取得為主）
-│   └── .gitkeep
-└── outputs/                 # 程式執行後自動產生輸出（不納入版控）
-    └── .gitkeep
-```
-執行 main.py 後會在 outputs/ 產生 aqi_map.html 與 aqi_report.csv（此為產出檔，故不納入 Git 版控）。
+### 🎯 清理效果
+- **📄 原始資料**：5,973個避難所
+- **✅ 合理位置**：5,904個（98.8%）
+- **❌ 不合理位置**：69個（1.2%）
+- **📊 品質提升**：從99.3%提升到98.8%
 
-## 🛠 技術棧
+### 🚫 異常類型分佈
+- **🌊 海上點位**：35個（50.7%）
+- **🚫 邊界外異常**：5個（7.2%）
+- **🔍 其他異常**：29個（42.1%）
 
-| 用途 | 工具/庫 | 版本 |
-|------|---------|------|
-| Python | Python | 3.12 |
-| 環境管理 | Conda | - |
-| API 請求 | Requests | ≥2.31.0 |
-| 環境變數 | python-dotenv | ≥1.0.0 |
-| 地圖可視化 | Folium | ≥0.14.0 |
-| 數據處理 | Pandas | ≥2.0.0 |
+## 🌐 資料來源
 
-## 🔢 算法說明
+### 📊 AQI測站數據
+- **來源**：環境部開放資料平台
+- **API端點**：`https://data.moenv.gov.tw/api/v2/aqx_p_432`
+- **更新頻率**：每小時
+- **測站數量**：85個全台測站
+- **資料格式**：程式自動獲取並處理
 
-### Haversine 距離公式
-計算兩點間的地理距離（地球表面）：
-
-```
-a = sin²(Δlat/2) + cos(lat1) × cos(lat2) × sin²(Δlon/2)
-c = 2 × asin(√a)
-distance = R × c
-```
-
-其中 R 為地球平均半徑（6371 公里）
-
-## 🌐 API 文檔
-
-- 資料來源：[環境部開放資料平台](https://data.moenv.gov.tw/)
-- API 端點：`https://data.moenv.gov.tw/api/v2/aqx_p_432`
-- 數據類型：空氣污染指標（AQI）
-- 更新頻率：每小時
-
-## 📤 雲端備份（GitHub）
-
-### 設置步驟
-
-1. **安裝工具**
-   - Git：https://git-scm.com/download/win
-   - GitHub CLI（可選）：https://cli.github.com/
-
-2. **初始化本地倉庫**
-   ```bash
-   git init
-   git config user.email "your_email@example.com"
-   git config user.name "Ben"
-   git add .
-   git commit -m "Initial commit: AQI analysis system"
-   ```
-
-3. **建立 GitHub 倉庫**
-   - 訪問：https://github.com/new
-   - 倉庫名：`aqi-analysis`
-   - 設為 Public（公開）
-
-4. **推送代碼**
-   
-   方式 A（推薦）：
-   ```bash
-   gh auth login
-   gh repo create aqi-analysis --public --source=. --remote=origin --push
-   ```
-   
-   方式 B（手動）：
-   ```bash
-   git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/aqi-analysis.git
-   git push -u origin main
-   ```
+### 🏢 避難所數據
+- **來源**：內政部消防署避難所資料
+- **清理後數量**：5,904個合理位置
+- **座標系統**：WGS84經緯度
+- **品質控制**：多層次驗證機制
+- **資料檔案**：`data/shelters_cleaned.csv`
 
 ## 💡 使用技巧
 
-### 查看最近的污染源
+###  數據分析
 ```bash
-# CSV 報告已按距離排序，最近的測站在最前面
-head -2 outputs/aqi_report.csv
+# 查看高風險避難所
+grep "高風險" outputs/shelter_aqi_analysis.csv
+
+# 統計風險分佈
+cut -d',' -f8 outputs/shelter_aqi_analysis.csv | sort | uniq -c
+
+# 查看特定縣市統計
+grep "高雄市" outputs/shelter_aqi_analysis.csv | wc -l
+
+# 查看分析結果前10筆
+head -10 outputs/shelter_aqi_analysis.csv
 ```
 
-### 生成更新的數據
-```bash
-# 程式會自動獲取最新數據並更新地圖和報告
-python main.py
-```
-
-### 自定義環境
-修改 `main.py` 中的設置：
+### 🔧 自定義設定
+修改 `script/shelter_aqi_analysis.py` 中的設定：
 ```python
-# 改變地圖中心點
-center_lat = 23.5
-center_lon = 121
+# 調整風險閾值
+LOW_RISK_THRESHOLD = 50
+MEDIUM_RISK_THRESHOLD = 100
 
-# 改變目標距離計算點
-taipei_station_lat = 25.0478
-taipei_station_lon = 121.5170
+# 修改距離範圍
+SEARCH_RADIUS_KM = 50
+
+# 修改情境注入測站
+scenario_stations = ['大寮', '林園']
 ```
-
-## ⚙️ 自動化裝置
-
-程式已內建自動套件安裝功能：
-```python
-def setup_packages():
-    """自動檢查並安裝必要的 Python 套件"""
-```
-
-如果缺少依賴，程式會自動安裝。
 
 ## 🐛 故障排除
 
 | 問題 | 解決方案 |
-|-------|---------|
-| API Key 無效 | 檢查 .env 文件中的 MOENV_API_KEY |
-| 沒有有效測站數據 | 檢查網路連線和 API 狀態 |
-| 地圖無法打開 | 確保 outputs 目錄存在且有寫入權限 |
-| CSV 編碼問題 | 文件已使用 UTF-8 with BOM 編碼 |
+|------|---------|
+| 整合腳本執行失敗 | 檢查 `data/shelters_cleaned.csv` 是否存在且格式正確 |
+| AQI資料獲取失敗 | 檢查網路連線，或稍後重試執行 |
+| 地圖無法載入 | 確認 `outputs/dual_layer_map.html` 檔案是否存在 |
+| 分析結果為空 | 檢查避難所資料座標格式是否正確 |
+| 記憶體不足 | 大型地圖檔案需要較多記憶體，建議使用現代瀏覽器 |
+| CSV編碼問題 | 檔案已使用UTF-8編碼，可用Excel直接開啟 |
+
+### � 整合腳本特色
+- **🔄 一鍵執行**: 自動完成所有分析步驟
+- **📊 完整輸出**: 同時生成CSV分析結果和互動地圖
+- **🔍 自動驗證**: 內建空間審計和資料品質檢查
+- **📈 詳細報告**: 提供完整的統計分析和風險評估
+
+## 📚 技術文檔
+
+### 📄 重要檔案說明
+- **`reflection.md`**：完整的專案反思報告
+- **`audit_report.md`**：空間審計技術文檔（homework2分支）
+- **`dual_layer_report.md`**：地圖統計報告（homework2分支）
+
+### 🔧 技術棧
+| 用途 | 工具/庫 | 版本 |
+|------|---------|------|
+| Python | Python | 3.12 |
+| 資料處理 | Pandas | ≥2.0.0 |
+| 地圖視覺化 | Folium | ≥0.14.0 |
+| HTTP請求 | Requests | ≥2.31.0 |
+| 環境變數 | python-dotenv | ≥1.0.0 |
+
+## 🔄 版本控制
+
+### 🌿 分支策略
+- **🌿 master**：穩定版本，只包含核心功能
+- **🌿 homework2**：開發版本，包含完整功能和分析
+
+### 📦 部署建議
+- **🔒 生產環境**：使用 master 分支
+- **🔧 開發環境**：使用 homework2 分支
+- **🚀 測試環境**：可基於 homework2 創建功能分支
 
 ## 📄 許可證
 
@@ -219,15 +234,17 @@ MIT License
 ## 👤 作者
 
 Ben  
-國立臺灣大學地理環境資源學系
+國立臺灣大學地理環境資源學系  
+RSGI 專案團隊
 
 ## 📞 聯絡方式
 
-- 環境部 API：https://data.moenv.gov.tw/
-- GitHub：https://github.com/
+- **GitHub**：https://github.com/Chuang-ben/aqi-analysis
+- **環境部API**：https://data.moenv.gov.tw/
 
 ---
 
-**最後更新**：2026年2月25日  
-**程式版本**：1.0  
-**Python 版本**：3.12
+**最後更新**：2026年3月4日  
+**程式版本**：v2.0（雙圖層地圖系統）  
+**Python版本**：3.12  
+**資料品質**：98.8%（5,904/5,973）
