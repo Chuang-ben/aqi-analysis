@@ -74,10 +74,10 @@ def create_shelter_aqi_analysis():
     
     # 讀取資料
     try:
-        shelter_df = pd.read_csv('data/shelter_with_correct_area.csv')
+        shelter_df = pd.read_csv('data/shelters_cleaned.csv')
         print(f"✓ 成功讀取避難所資料: {len(shelter_df)} 筆記錄")
     except FileNotFoundError:
-        print("✗ 找不到 shelter_with_correct_area.csv 檔案")
+        print("✗ 找不到 shelters_cleaned.csv 檔案")
         return False
     
     try:
@@ -123,6 +123,8 @@ def create_shelter_aqi_analysis():
                 '測站名稱': shelter_name,
                 '測站位置': shelter_location,
                 '室內室外': shelter_type,
+                '經度': shelter_lon,
+                '緯度': shelter_lat,
                 '周圍空汙指數': round(avg_aqi, 2),
                 '風險程度': risk_level,
                 '最近測站': nearest_station['sitename'],
@@ -135,6 +137,8 @@ def create_shelter_aqi_analysis():
                 '測站名稱': shelter_name,
                 '測站位置': shelter_location,
                 '室內室外': shelter_type,
+                '經度': shelter_lon,
+                '緯度': shelter_lat,
                 '周圍空汙指數': '無資料',
                 '風險程度': '未知',
                 '最近測站': '無',
