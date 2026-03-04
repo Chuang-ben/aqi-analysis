@@ -331,8 +331,8 @@ def create_mock_aqi_data():
     return aqi_df
 
 # ==================== AQI分析 ====================
-def get_nearby_aqi_info(shelter_lat, shelter_lon, aqi_df, max_distance=50):
-    """獲取避難所周圍的AQI資訊 (50公里範圍，確保無遺漏)"""
+def get_nearby_aqi_info(shelter_lat, shelter_lon, aqi_df, max_distance=100):
+    """獲取避難所周圍的AQI資訊 (100公里範圍，確保覆蓋蘭嶼等離島地區)"""
     nearby_stations = []
     
     for _, aqi_row in aqi_df.iterrows():
@@ -349,13 +349,15 @@ def get_nearby_aqi_info(shelter_lat, shelter_lon, aqi_df, max_distance=50):
             if pd.isna(aqi_value) or aqi_value == '':
                 aqi_value = 0
             
-            weight = 1 / (1 + distance)  # 距離越近權重越高
+            weight = 1 / (1 + distance * 0.25)  # 距離加權衰減非常平緩，讓遠距離測站影響更大
             nearby_stations.append({
                 'sitename': aqi_row['sitename'],
                 'aqi': aqi_value,
                 'distance': distance,
                 'weight': weight,
-                'county': aqi_row['county']
+                'county': aqi_row['county'],
+                'latitude': aqi_row['latitude'],
+                'longitude': aqi_row['longitude']
             })
     
     if not nearby_stations:
@@ -375,16 +377,26 @@ def get_nearby_aqi_info(shelter_lat, shelter_lon, aqi_df, max_distance=50):
         'nearby_stations': nearby_stations
     }
 
-def assess_risk_level(aqi_value):
+def assess_risk_level(aqi_value, is_indoor, nearest_station_aqi):
     """評估風險等級"""
     if pd.isna(aqi_value) or aqi_value == 0:
-        return "無資料"
-    elif aqi_value <= 50:
-        return "低風險"
+        return "no data"
+    
+    # High Risk: 距離加權AQI > 100
+    if aqi_value > 100:
+        return "high risk"
+    
+    # Warning: 距離加權AQI > 50 AND 設施為室外
+    if aqi_value > 50 and not is_indoor:
+        return "high risk"
+    
+    # 原有的風險分類邏輯（基於距離加權AQI）
+    if aqi_value <= 50:
+        return "low risk"
     elif aqi_value <= 100:
-        return "中等風險"
+        return "warning"
     else:
-        return "高風險"
+        return "high risk"
 
 def analyze_shelter_aqi(shelter_df, aqi_df):
     """分析避難所的AQI狀況"""
@@ -412,7 +424,7 @@ def analyze_shelter_aqi(shelter_df, aqi_df):
                 '最近測站名稱': aqi_info['nearest_station']['sitename'],
                 '最近測站位置': f"({aqi_info['nearest_station']['county']})",
                 '周圍空氣污染指數': round(aqi_info['weighted_aqi'], 2),
-                '風險等級': assess_risk_level(aqi_info['weighted_aqi']),
+                '風險等級': assess_risk_level(aqi_info['weighted_aqi'], shelter['室內室外'], aqi_info['nearest_station']['aqi']),
                 '最近測站距離(km)': round(aqi_info['nearest_station']['distance'], 2),
                 '影響測站數量': aqi_info['station_count']
             }
@@ -548,16 +560,16 @@ def create_dual_layer_map(shelter_df, aqi_df):
             avg_aqi = aqi_info['weighted_aqi']
             if avg_aqi <= 50:
                 bg_color = '#e8f5e8'  # 淺綠色
-                risk_level = "低風險"
+                risk_level = "low risk"
             elif avg_aqi <= 100:
                 bg_color = '#fff3cd'  # 淺黃色
-                risk_level = "中等風險"
+                risk_level = "warning"
             else:
-                bg_color = '#ffb3ba'  # 淺紅色
-                risk_level = "高風險"
+                bg_color = '#ffb3ba'  #紅色
+                risk_level = "high risk"
         else:
             bg_color = '#e8f5e8'  # 淺綠色
-            risk_level = "無資料"
+            risk_level = "no data"
         
         popup_content = f"""
         <div style="font-family: Arial, sans-serif; min-width: 280px;">
@@ -629,16 +641,16 @@ def create_dual_layer_map(shelter_df, aqi_df):
             avg_aqi = aqi_info['weighted_aqi']
             if avg_aqi <= 50:
                 bg_color = '#e8f5e8'  # 淺綠色
-                risk_level = "低風險"
+                risk_level = "low risk"
             elif avg_aqi <= 100:
                 bg_color = '#fff3cd'  # 淺黃色
-                risk_level = "中等風險"
+                risk_level = "warning"
             else:
-                bg_color = '#ffb3ba'  # 淺紅色
-                risk_level = "高風險"
+                bg_color = '#ffb3ba'  #紅色
+                risk_level = "high risk"
         else:
             bg_color = '#f8f9fa'
-            risk_level = "無資料"
+            risk_level = "no data"
         
         popup_content = f"""
         <div style="font-family: Arial, sans-serif; min-width: 280px;">
