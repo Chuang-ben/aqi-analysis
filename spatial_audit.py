@@ -29,7 +29,7 @@ class SpatialAudit:
         # 台灣主要地區的精確邊界
         self.taiwan_regions = {
             'taiwan_north': {
-                'min_lon': 120.1, 'max_lon': 122.4,
+                'min_lon': 120.2, 'max_lon': 122.4,
                 'min_lat': 24.3, 'max_lat': 25.4
             },
             'taiwan_central': {
