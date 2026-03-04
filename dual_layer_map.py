@@ -67,10 +67,10 @@ def create_dual_layer_map():
     
     # 讀取避難所資料 (使用位置合理性檢查後的檔案)
     try:
-        shelter_df = pd.read_csv('data/shelter_with_correct_area.csv')
+        shelter_df = pd.read_csv('data/shelters_cleaned.csv')
         print(f"✓ 成功讀取避難所資料: {len(shelter_df)} 筆記錄")
     except FileNotFoundError:
-        print("✗ 找不到 shelter_with_correct_area.csv 檔案")
+        print("✗ 找不到 shelters_cleaned.csv 檔案")
         return None
     
     # shelter_with_correct_area.csv 已經是經過篩選的合理位置避難所
