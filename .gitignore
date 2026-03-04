@@ -46,6 +46,7 @@ MANIFEST
 
 # Scripts
 /other_scripts/
+main.py
 
 # Logs
 *.log
