@@ -44,6 +44,7 @@ MANIFEST
 !/data/shelters_cleaned.csv
 /outputs/*
 !/outputs/shelter_aqi_analysis.csv
+!/outputs/audit_report.md
 !.gitkeep
 
 # Scripts
