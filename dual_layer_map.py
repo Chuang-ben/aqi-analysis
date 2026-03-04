@@ -54,15 +54,24 @@ def create_dual_layer_map():
         print("✗ 找不到 AQI 數據檔案")
         return
     
-    # 讀取避難收容所資料
-    shelter_df = pd.read_csv('data/shelter.csv')
+    # 讀取避難所資料 (使用位置合理性檢查後的檔案)
+    try:
+        shelter_df = pd.read_csv('data/shelter_with_correct_area.csv')
+        print(f"✓ 成功讀取避難所資料: {len(shelter_df)} 筆記錄")
+    except FileNotFoundError:
+        print("✗ 找不到 shelter_with_correct_area.csv 檔案")
+        return None
     
-    # 過濾有效座標
-    valid_shelters = shelter_df[
-        (shelter_df['經度'].notna()) & 
-        (shelter_df['緯度'].notna()) &
-        (shelter_df['經度'] != 0) & 
-        (shelter_df['緯度'] != 0)
+    # shelter_with_correct_area.csv 已經是經過篩選的合理位置避難所
+    valid_shelters = shelter_df.copy()
+    print(f"✓ 合理位置避難所: {len(valid_shelters)} 個")
+    
+    # 過濾有效座標 (已經在位置合理性檢查中處理過)
+    valid_shelters = valid_shelters[
+        (valid_shelters['經度'].notna()) & 
+        (valid_shelters['緯度'].notna()) &
+        (valid_shelters['經度'] != 0) & 
+        (valid_shelters['緯度'] != 0)
     ].copy()
     
     print(f"✓ 有效避難所: {len(valid_shelters)} 個")
